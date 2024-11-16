@@ -1,0 +1,25 @@
+body {
+    font-family: 'Shantell Sans';
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    text-align: center;
+    font-family: 'Shantell Sans';
+}
+
+root {
+    width: 100px;
+    height: 100px;
+    background-color: lightblue;
+    justify-content: center;
+    text-align: center;
+}
+
+button {
+    padding: 1em;
+    margin: 0.3em;
+}

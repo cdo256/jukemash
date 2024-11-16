@@ -7,7 +7,7 @@ type Page = "HOME" | "HOST" | "PLAYER";
 function HomePage({ setPage }: { setPage: (page: Page) => void }) {
   return (
     <>
-      <p>Home Page</p>
+      <h1>JukeMash!!!</h1>
       <button onClick={() => setPage("HOST")}>Host Game</button>
       <button onClick={() => setPage("PLAYER")}>Join Game</button>
     </>
