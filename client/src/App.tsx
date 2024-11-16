@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { HostPage } from "./host/HostPage";
-import { JoinPage } from "./join/JoinPage";
+import { PlayerPage } from "./player/PlayerPage";
 
-type Page = "HOME" | "HOST" | "JOIN";
+type Page = "HOME" | "HOST" | "PLAYER";
 
 function HomePage({ setPage }: { setPage: (page: Page) => void }) {
-  return <>
-    <p>Home Page</p>
-    <button onClick={() => setPage("HOST")}>Host Game</button>
-    <button onClick={() => setPage("JOIN")}>Join Game</button>
-  </>;
+  return (
+    <>
+      <p>Home Page</p>
+      <button onClick={() => setPage("HOST")}>Host Game</button>
+      <button onClick={() => setPage("PLAYER")}>Join Game</button>
+    </>
+  );
 }
 
 export function App() {
@@ -22,8 +24,8 @@ export function App() {
     case "HOST": {
       return <HostPage onBack={() => setPage("HOME")} />;
     }
-    case "JOIN": {
-      return <JoinPage onBack={() => setPage("HOME")} />;
+    case "PLAYER": {
+      return <PlayerPage onBack={() => setPage("HOME")} />;
     }
   }
 }
