@@ -3,7 +3,7 @@ export function HostPage({ onBack }: { onBack: () => void }) {
     <>
       <h1>JukeMash!!!</h1>
       <h2>Host-mode</h2>
-      <button class='back' onClick={() => onBack()}>Back</button>
+      <button className='back' onClick={() => onBack()}>Back</button>
     </>
   );
 }
