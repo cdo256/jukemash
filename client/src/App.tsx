@@ -15,7 +15,17 @@ function HomePage({ setPage }: { setPage: (page: Page) => void }) {
 }
 
 export function App() {
-  const [page, setPage] = useState<Page>("HOME");
+  let initialPage: Page = "HOME";
+  switch (window.location.pathname) {
+    case `${import.meta.env.BASE_URL}/host`:
+      initialPage = "HOST";
+      break;
+    case `${import.meta.env.BASE_URL}/join`:
+      initialPage = "PLAYER";
+      break;
+  }
+
+  const [page, setPage] = useState<Page>(initialPage);
 
   switch (page) {
     case "HOME": {
