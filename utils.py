@@ -13,6 +13,12 @@ def current_timestamp():
     """Get the current timestamp as a string."""
     return datetime.utcnow().isoformat()
 
+def get_available_themes() -> list[str]:
+    with open("data/playlists.json", "r") as f:
+        themes_string =  f.read()
+    themes = json.loads(themes_string)
+    return themes.keys()
+
 def select_song(theme: str, access_token: str) -> tuple[str, str]:
     """
     Given theme (can be empty) will select a song URI from the theme

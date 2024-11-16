@@ -49,6 +49,7 @@ def create_game() -> Response:
     }
     return jsonify({"gameCode": code, "gameMode": game_mode}), 201
 
+
 @app.route("/api/round_info", methods=["POST"])
 def round_info():
     """
@@ -59,7 +60,7 @@ def round_info():
         "spotifyAccessToken": "accessToken",
         "roundTheme": "80s" // optional, random otherwise
     }
-    Returns 
+    Returns
     {
         "roundIndex": 0,
         "gameCode": "TBA2",
@@ -68,6 +69,22 @@ def round_info():
     }
     """
     pass
+
+
+@app.route("/api/themes", methods=["GET"])
+def get_available_themes() -> Response:
+    """
+    Returns list of available themes in form:
+    {
+        "themes": [
+            "80s",
+            "2010s"
+        ]
+    }
+    """
+
+    themes = utils.get_available_themes()
+    return jsonify({"themes": themes}), 200
 
 
 @socketio.on("round_start")
