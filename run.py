@@ -1,33 +1,137 @@
-from flask import Flask, send_from_directory, request, jsonify
-import sqids
+from flask import Flask, send_from_directory, request, jsonify, Response
+from flask_socketio import SocketIO, join_room, leave_room, emit
 import utils
+import json
 
-games = {}
+game_rooms = {}
 app = Flask(__name__)
+socketio = SocketIO(app)
 
-@app.route('/')
+
+@app.route("/")
 def home():
-    return send_from_directory('static', "index.html")
+    return send_from_directory("static", "index.html")
 
-@app.route('/static/<path:filename>')
-def static_files(filename):
-    return send_from_directory('static', filename)
 
-@app.route("/api/create_game", methods=['POST'])
-def create_game():
+@app.route("/api/create_game", methods=["POST"])
+def create_game() -> Response:
     """
-    \{
-       "userId": "1268e47d-c259-4a1e-b5c4-bdeef07dc2ee"
+    Expects:
+    {
+       "userId": "1268e47d-c259-4a1e-b5c4-bdeef07dc2ee",
        "gameMode": "guess"
-    \}
+    }
 
-    returns a game code which is all upper case in the form:
-    \{
-        "gameCode": A1B2
-    \}
+    Returns:
+    {
+        "gameCode": "A1B2"
+    }
     """
-    
-    data = request.get_json()
+    data: dict = json.loads(request.get_json())
+    app.logger.info(data)
+    if "gameMode" in data:
+        game_mode = data["gameMode"]
+    else:
+        return jsonify({"message": "Missing gameMode field"}), 400
+
+    if "userId" in data:
+        host_id = data["userId"]
+    else:
+        return jsonify({"message": "Missing userId field"}), 400
+
     code = utils.generate_game_code()
-    return jsonify({'gameCode': code}), 201
-    
+    game_rooms[code] = {
+        "players": [],
+        "gameMode": game_mode,
+        "hostId": host_id,
+        "responses": [],  # List of responses with timestamps
+        "roundTimestamps": {},  # Stores start and end timestamps for each round
+    }
+    return jsonify({"gameCode": code, "gameMode": game_mode}), 201
+
+@app.route("/api/round_info", methods=["POST"])
+def round_info():
+    """
+    Expects body in form:
+    {
+        "roundIndex": 0,
+        "gameCode": "TBA2",
+        "spotifyAccessToken": "accessToken",
+        "roundTheme": "80s" // optional, random otherwise
+    }
+    Returns 
+    {
+        "roundIndex": 0,
+        "gameCode": "TBA2",
+        "spotifySongUri": "spotify:track:4uLU6hMCjMI75M1A2tKUQC"
+        "roundTheme": "80s"
+    }
+    """
+    pass
+
+
+@socketio.on("round_start")
+def round_start(data):
+    game_code = data["game_code"]
+
+    if game_code in game_rooms:
+        timestamp = utils.current_timestamp()
+        game_rooms[game_code]["roundTimestamps"]["start"] = timestamp
+        game_mode = game_rooms[game_code]["gameMode"]
+
+        emit(
+            "round_start",
+            {
+                "message": "Round has started!",
+                "game_mode": game_mode,
+                "timestamp": timestamp,
+            },
+            to=game_code,
+        )
+    else:
+        emit("error", {"message": "Invalid game code"})
+
+
+@socketio.on("round_end")
+def round_end(data):
+    game_code = data["game_code"]
+
+    if game_code in game_rooms:
+        timestamp = utils.current_timestamp()
+        game_rooms[game_code]["roundTimestamps"]["end"] = timestamp
+
+        emit(
+            "round_end",
+            {"message": "Round has ended!", "timestamp": timestamp},
+            to=game_code,
+        )
+
+        # Clear responses after round ends
+        game_rooms[game_code]["responses"] = []
+    else:
+        emit("error", {"message": "Invalid game code"})
+
+
+@socketio.on("submit_response")
+def submit_response(data):
+    username = data["username"]
+    game_code = data["game_code"]
+    response = data["response"]  # Variable JSON depending on the game mode
+
+    if game_code in game_rooms:
+        timestamp = utils.current_timestamp()
+        game_rooms[game_code]["responses"].append(
+            {"username": username, "response": response, "timestamp": timestamp}
+        )
+
+        emit(
+            "response_received",
+            {"username": username, "response": response, "timestamp": timestamp},
+            to=game_code,
+        )
+    else:
+        emit("error", {"message": "Invalid game code"})
+
+
+if __name__ == "__main__":
+    socketio.run(app, host="0.0.0.0")
