@@ -267,7 +267,7 @@ def next_buzz_in():
     if len(buzzs) > 0:
         return jsonify(buzzs.pop(0)), 200
 
-    return jsonify({"message": "NO buzzes"}), 404
+    return jsonify({}), 200
     
 
 
