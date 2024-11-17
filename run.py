@@ -182,7 +182,7 @@ def join_game():
     if "gameCode" not in data:
         return jsonify({"message": "missing gameCode"}), 400
 
-    game_code = data["gameCode"]
+    game_code = data["gameCode"].upper()
     name = data["name"]
 
     if game_code not in game_rooms:
