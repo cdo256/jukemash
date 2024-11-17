@@ -1,7 +1,9 @@
-from flask import Flask, send_from_directory, request, jsonify, Response
-from flask_socketio import SocketIO, join_room, leave_room, emit
-import utils
 import json
+
+from flask import Flask, Response, jsonify, request, send_from_directory
+from flask_socketio import SocketIO, emit, join_room, leave_room
+
+import utils
 
 game_rooms = {}
 app = Flask(__name__)
@@ -10,6 +12,16 @@ socketio = SocketIO(app)
 
 @app.route("/")
 def home():
+    return send_from_directory("static", "index.html")
+
+
+@app.route("/host")
+def host():
+    return send_from_directory("static", "index.html")
+
+
+@app.route("/join")
+def join():
     return send_from_directory("static", "index.html")
 
 
