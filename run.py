@@ -187,6 +187,18 @@ def get_players():
         return jsonify({"message": "invalid gameCode"}), 400
     return jsonify(game_rooms[game_code]["players"])
 
+@app.route("/api/get_scoreboard")
+def get_scoreboard():
+    data: dict = json.loads(request.get_data())
+    if "gameCode" not in data:
+        return jsonify({"message": "gameCode missing"}), 400
+    game_code = data["gameCode"]
+    if game_code not in game_rooms:
+        return jsonify({"message": "invalid gameCode"}), 400
+    players = game_rooms[game_code]["players"]
+    playersList = [{"name": name, "score": score} for _, (name, score) in enumerate(players.items())]
+    playersList.sort(key=lambda player: player["score"])
+    return jsonify({"winner": playersList[0], "scoreboard": playersList})
 
 @app.route("/api/buzz_in", methods=["POST"])
 def buzz_in():
@@ -244,7 +256,13 @@ def set_result():
     result = data["result"]
 
     if name not in game_rooms[game_code]["players"]:
-        return jsonify({"message": ""})
+        return jsonify({"message": "Invalid player name"}), 400
+
+    if result == "correct":
+        game_rooms[game_code]["players"][name] += 1000
+    else:
+        game_rooms[game_code]["players"][name] -= 500
+
 
 
 if __name__ == "__main__":
