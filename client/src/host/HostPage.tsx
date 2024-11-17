@@ -1,12 +1,12 @@
 import { AxiosInstance } from "axios";
 import { useAuth } from "./AuthProvider";
 
-function HostView({ client }: { client: AxiosInstance }) {
+function HostView({ spotifyClient }: { spotifyClient: AxiosInstance }) {
   return <p>Logged in</p>;
 }
 
 export function HostPage({ onBack }: { onBack: () => void }) {
-  const { client, token, isPending, loginAction } = useAuth();
+  const { spotifyClient, token, isPending, loginAction } = useAuth();
 
   return (
     <>
@@ -19,8 +19,8 @@ export function HostPage({ onBack }: { onBack: () => void }) {
             Back
           </button>
         </>
-      ) : client ? (
-        <HostView client={client} />
+      ) : spotifyClient ? (
+        <HostView spotifyClient={spotifyClient} />
       ) : (
         <>
           <button onClick={() => loginAction()}>Log in with Spotify</button>
