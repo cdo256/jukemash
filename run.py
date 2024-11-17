@@ -85,7 +85,7 @@ def round_info():
     """
     data: dict = json.loads(request.get_data())
 
-    round_index = data["roundIndex"]
+    round_index = int(data["roundIndex"])
     game_code = data["gameCode"]
     if game_rooms[game_code]["currentRound"] < int(round_index):
         game_rooms[game_code]["currentRound"] = int(round_index)
@@ -229,7 +229,7 @@ def buzz_in():
 
     name = data["playerName"]
     game_code = data["gameCode"]
-    round_index = data["roundIndex"]
+    round_index = int(data["roundIndex"])
 
     game_rooms[game_code]["rounds"][round_index]["buzzIns"].append(
         {"name": name, "timestamp": utils.current_timestamp()}
@@ -249,7 +249,7 @@ def next_buzz_in():
     """
     data: dict = json.loads(request.get_data())
     game_code = data["gameCode"]
-    round_index = data["roundIndex"]
+    round_index = int(data["roundIndex"])
     next = data[game_code]["rounds"][round_index]["buzzIns"].pop(0)
 
     return jsonify(next), 200
