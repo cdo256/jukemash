@@ -83,8 +83,22 @@ def round_info():
     """
     data: dict = json.loads(request.get_json())
 
-    #round_index = data["roundIndex"]
+    round_index = data["roundIndex"]
+    game_code = data["gameCode"]
+    access_token = data["spotifyAccessToken"]
+    round_theme = ""
+    if "roundTheme" in data.keys():
+        round_theme = data["roundTheme"]
 
+    if game_code not in data.keys():
+        return jsonify({"message": "Game code not valid"}), 400
+
+    song_uri, round_theme = utils.select_song(round_theme, access_token)
+
+    return jsonify({"roundIndex": round_index,
+                    "gameCode": game_code,
+                    "spotifySongUri": song_uri,
+                    "roundTheme": round_theme}), 200
 
 
 # WebSocket Event: Chat or Game Logic
