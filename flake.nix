@@ -16,6 +16,8 @@
             nodejs
             nodePackages.pnpm
             python312Packages.poetry-core
+#            python312Packages.poetry
+            poetry
           ];
         };
       }
