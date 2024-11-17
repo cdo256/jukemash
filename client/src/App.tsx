@@ -17,25 +17,51 @@ function HomePage({ setPage }: { setPage: (page: Page) => void }) {
 export function App() {
   let initialPage: Page = "HOME";
   switch (window.location.pathname) {
-    case `${import.meta.env.BASE_URL}/host`:
+    case "/host":
       initialPage = "HOST";
       break;
-    case `${import.meta.env.BASE_URL}/join`:
+    case "/join":
       initialPage = "PLAYER";
       break;
   }
 
   const [page, setPage] = useState<Page>(initialPage);
 
+  const switchPage = (newPage: Page) => {
+    setPage(newPage);
+
+    let newPath;
+    switch (newPage) {
+      case "HOME": {
+        newPath = "/";
+        break;
+      }
+      case "HOST": {
+        newPath = "/host";
+        break;
+      }
+      case "PLAYER": {
+        newPath = "/join";
+        break;
+      }
+    }
+
+    window.history.replaceState(
+      {},
+      document.title,
+      window.location.origin + newPath,
+    );
+  };
+
   switch (page) {
     case "HOME": {
-      return <HomePage setPage={(page) => setPage(page)} />;
+      return <HomePage setPage={(page) => switchPage(page)} />;
     }
     case "HOST": {
-      return <HostPage onBack={() => setPage("HOME")} />;
+      return <HostPage onBack={() => switchPage("HOME")} />;
     }
     case "PLAYER": {
-      return <PlayerPage onBack={() => setPage("HOME")} />;
+      return <PlayerPage onBack={() => switchPage("HOME")} />;
     }
   }
 }

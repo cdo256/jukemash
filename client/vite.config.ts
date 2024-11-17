@@ -3,7 +3,6 @@ import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/static",
   plugins: [react()],
   server: {
     port: 5173,
