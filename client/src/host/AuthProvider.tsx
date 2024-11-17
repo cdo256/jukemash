@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import axios, { AxiosInstance } from "axios";
+import axios from "axios";
 import { createContext, useContext, useEffect, useState } from "react";
 
 function getRedirectUri() {

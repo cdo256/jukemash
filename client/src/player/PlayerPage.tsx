@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
-type GameState =
+type PlayerState =
   | "UNCONNECTED"
   | "WAITING"
   | "ROUND_START"
@@ -82,7 +82,7 @@ function WaitingState({
   });
 
   useEffect(() => {
-    if (!isPending && !isError && data.data.roundNumber > 0) {
+    if (!isPending && !isError && data.data.roundNumber >= 0) {
       onStarted();
     }
   }, [data]);
@@ -91,30 +91,30 @@ function WaitingState({
 }
 
 export function PlayerPage({ onBack }: { onBack: () => void }) {
-  const [gameState, setGameState] = useState<GameState>("UNCONNECTED");
+  const [playerState, setPlayerState] = useState<PlayerState>("UNCONNECTED");
   const [name, setName] = useState<string>("");
   const [gameCode, setGameCode] = useState<string>("");
 
-  if (gameState == "UNCONNECTED") {
+  if (playerState == "UNCONNECTED") {
     return (
       <UnconnectedState
         onBack={onBack}
         onConnect={(newName, newGameCode) => {
           setName(newName);
           setGameCode(newGameCode);
-          setGameState("WAITING");
+          setPlayerState("WAITING");
         }}
-        onError={() => setGameState("UNCONNECTED")}
+        onError={() => setPlayerState("UNCONNECTED")}
       />
     );
-  } else if (gameState == "WAITING") {
+  } else if (playerState == "WAITING") {
     return (
       <WaitingState
         gameCode={gameCode}
-        onStarted={() => setGameState("ROUND_START")}
+        onStarted={() => setPlayerState("ROUND_START")}
       />
     );
-  } else if (gameState == "ROUND_START") {
+  } else if (playerState == "ROUND_START") {
     return <h2>Round Start</h2>;
   } else {
     return <h2>Unknown state</h2>;
