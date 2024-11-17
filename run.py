@@ -55,11 +55,10 @@ def create_game() -> Response:
 
     code = utils.generate_game_code()
     game_rooms[code] = {
-        "players": [],
+        "players": {},
         "gameMode": game_mode,
         "hostId": host_id,
-        "responses": [],  # List of responses with timestamps
-        "roundTimestamps": {},  # Stores start and end timestamps for each round
+        "rounds": {},  # List of responses with timestamps
     }
     return jsonify({"gameCode": code, "gameMode": game_mode}), 201
 
@@ -86,6 +85,13 @@ def round_info():
 
     round_index = data["roundIndex"]
     game_code = data["gameCode"]
+    if round_index in game_rooms[game_code]["rounds"]:
+        round = game_rooms[game_code]["rounds"][round_index]
+        return jsonify({"spotifySongUri": round["songUri"],
+                        "gameCode": game_code,
+                        "roundTheme": round["roundTheme"],
+                        "roundIndex": round_index}), 200
+    
     access_token = data["spotifyAccessToken"]
     round_theme = ""
     if "roundTheme" in data.keys():
@@ -93,8 +99,14 @@ def round_info():
 
     if game_code not in game_rooms:
         return jsonify({"message": "Game code not valid"}), 400
-
+    
     song_uri, round_theme = utils.select_song(round_theme, access_token)
+
+    game_rooms[game_code]["rounds"][round_index] = {
+        "songUri": song_uri,
+        "buzzIns": [],
+        "roundTheme": round_theme
+    }
 
     return jsonify(
         {
@@ -104,14 +116,6 @@ def round_info():
             "roundTheme": round_theme,
         }
     ), 200
-
-
-# WebSocket Event: Chat or Game Logic
-@socketio.on("send_message")
-def on_send_message(data):
-    game_code = data["game_code"]
-    message = data["message"]
-    emit("new_message", {"message": message}, to=game_code)
 
 
 @app.route("/api/themes", methods=["GET"])
@@ -129,95 +133,44 @@ def get_available_themes() -> Response:
     themes = utils.get_available_themes()
     return jsonify({"themes": themes}), 200
 
+@app.route("/api/join_game", methods=["POST"])
+def join_game():
+    """POST: { "gameCode": "abcd", "name": "Alice" }"""
+    data: dict = json.loads(request.get_data())
+    if "name" not in data:
+        return jsonify({"message": "missing name"}), 400
+    if "gameCode" not in data:
+        return jsonify({"message": "missing gameCode"}), 400
+    
+    game_code = data["gameCode"]
+    name = data["name"]
+    
+    if game_code not in game_rooms:
+        return jsonify({"message": "Invalid gameCode"}), 400
 
-@socketio.on("round_start")
-def round_start(data):
-    game_code = data["game_code"]
+    if name in game_rooms[game_code]["players"]:
+        return jsonify({"message": "Player with that name already exists"}), 409
+    
+    game_rooms[game_code]["players"][name] = 0
+    
+    return jsonify({"message": "Player added"}), 201
 
-    if game_code in game_rooms:
-        timestamp = utils.current_timestamp()
-        game_rooms[game_code]["roundTimestamps"]["start"] = timestamp
-        game_mode = game_rooms[game_code]["gameMode"]
+@app.route("/api/get_players", methods=["POST"])
+def get_players():
+    data: dict = json.loads(request.get_data())
+    if "gameCode" not in data:
+        return jsonify({"message": "gameCode missing"}), 400
+    game_code = data["gameCode"]
+    if game_code not in game_rooms:
+        return jsonify({"message": "invalid gameCode"}), 400
+    return jsonify(game_rooms[game_code]["players"])
 
-        emit(
-            "round_start",
-            {
-                "message": "Round has started!",
-                "game_mode": game_mode,
-                "timestamp": timestamp,
-            },
-            to=game_code,
-        )
-    else:
-        emit("error", {"message": "Invalid game code"})
-
-
-@socketio.on("round_end")
-def round_end(data):
-    game_code = data["game_code"]
-
-    if game_code in game_rooms:
-        timestamp = utils.current_timestamp()
-        game_rooms[game_code]["roundTimestamps"]["end"] = timestamp
-
-        emit(
-            "round_end",
-            {"message": "Round has ended!", "timestamp": timestamp},
-            to=game_code,
-        )
-
-        # Clear responses after round ends
-        game_rooms[game_code]["responses"] = []
-    else:
-        emit("error", {"message": "Invalid game code"})
-
-
-@socketio.on("submit_response")
-def submit_response(data):
-    username = data["username"]
-    game_code = data["game_code"]
-    response = data["response"]  # Variable JSON depending on the game mode
-
-    if game_code in game_rooms:
-        timestamp = utils.current_timestamp()
-        game_rooms[game_code]["responses"].append(
-            {"username": username, "response": response, "timestamp": timestamp}
-        )
-
-        emit(
-            "response_received",
-            {"username": username, "response": response, "timestamp": timestamp},
-            to=game_code,
-        )
-    else:
-        emit("error", {"message": "Invalid game code"})
-
-
-@socketio.on("join_game")
-def on_join_game(data):
-    username = data["username"]
-    game_code = data["game_code"]
-
-    if game_code in game_rooms:
-        join_room(game_code)
-        game_rooms[game_code]["players"].append(username)
-        emit("player_joined", {"username": username}, to=game_code)
-        emit("game_state", {"players": game_rooms[game_code]["players"]}, to=game_code)
-    else:
-        emit("error", {"message": "Invalid game code"})
-
-
-# WebSocket Event: Leave Game
-@socketio.on("leave_game")
-def on_leave_game(data):
-    username = data["username"]
-    game_code = data["game_code"]
-
-    if game_code in game_rooms:
-        leave_room(game_code)
-        game_rooms[game_code]["players"].remove(username)
-        emit("player_left", {"username": username}, to=game_code)
-
+@app.route("/api/buzz_in")
+def buzz_in():
+    """User gives user name and game code along with any other data
+    Records timestamp in global state
+    """
+    pass
 
 if __name__ == "__main__":
     if os.environ.get("USE_SSL"):
