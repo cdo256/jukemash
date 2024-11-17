@@ -98,6 +98,8 @@ def round_info():
             {
                 "spotifySongUri": round["songUri"],
                 "gameCode": game_code,
+                "songTitle": round["songTitle"],
+                "songArtist": round["songArtist"],
                 "roundTheme": round["roundTheme"],
                 "roundIndex": round_index,
             }
@@ -116,6 +118,7 @@ def round_info():
     game_rooms[game_code]["rounds"][round_index] = {
         "songUri": song_uri,
         "songTitle": song_title,
+        "songArtist": song_artist,
         "buzzIns": [],
         "roundTheme": round_theme,
     }
