@@ -32,7 +32,7 @@ def select_song(theme: str, access_token: str) -> tuple[str, str]:
     themes = json.loads(themes_string)
     #print(themes)
     if theme not in themes:
-        theme = random.choice(random.choice(themes.keys()))
+        theme = random.choice(list(themes.keys()))
     
     playlist_url = themes[theme]["playlistLink"]
 
@@ -74,3 +74,8 @@ def select_song(theme: str, access_token: str) -> tuple[str, str]:
     print(track_name)
 
     return track_uri, theme
+
+if __name__ == "__main__":
+    s, t = select_song("", "BQCDyY5S8sMnhyK_O45s5yPRDEme-CKbSyZ9WEZHsQpA_teCw5I8fDFT_DW2nmlwo0thp6OHUbowXc7J4eTCfvKGf8gmGbAe8eQf-Cs5ZeCeKRs4FuQ")
+    print(s)
+    print(t)
