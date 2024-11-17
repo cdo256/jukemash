@@ -8,7 +8,7 @@ import utils
 
 game_rooms = {}
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 
 @app.route("/")
@@ -37,10 +37,11 @@ def create_game() -> Response:
 
     Returns:
     {
-        "gameCode": "A1B2"
+        "gameCode": "A1B2",
+        "gameMode": "guess"
     }
     """
-    data: dict = json.loads(request.get_json())
+    data: dict = json.loads(request.get_data())
     app.logger.info(data)
     if "gameMode" in data:
         game_mode = data["gameMode"]
@@ -81,8 +82,18 @@ def round_info():
         "roundTheme": "80s"
     }
     """
-    pass
+    data: dict = json.loads(request.get_json())
 
+    #round_index = data["roundIndex"]
+
+
+
+# WebSocket Event: Chat or Game Logic
+@socketio.on('send_message')
+def on_send_message(data):
+    game_code = data['game_code']
+    message = data['message']
+    emit('new_message', {'message': message}, to=game_code)
 
 @app.route("/api/themes", methods=["GET"])
 def get_available_themes() -> Response:
