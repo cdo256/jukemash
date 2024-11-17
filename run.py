@@ -256,13 +256,19 @@ def next_buzz_in():
         "gameCode": "abcd",
         "roundIndex": "1"
     }
+    returns
+
+    {"name": name, "timestamp": utils.current_timestamp()}
     """
     data: dict = json.loads(request.get_data())
     game_code = data["gameCode"]
     round_index = int(data["roundIndex"])
-    next = data[game_code]["rounds"][round_index]["buzzIns"].pop(0)
+    buzzs = data[game_code]["rounds"][round_index]["buzzIns"]
+    if len(buzzs) > 0:
+        return jsonify(buzzs.pop(0)), 200
 
-    return jsonify(next), 200
+    return jsonify({"message": "NO buzzes"}), 404
+    
 
 
 @app.route("/api/result", methods=["POST"])
