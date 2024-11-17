@@ -113,7 +113,9 @@ def round_info():
     if game_code not in game_rooms:
         return jsonify({"message": "Game code not valid"}), 400
 
-    song_uri, song_title, song_artist, round_theme = utils.select_song(round_theme, access_token)
+    song_uri, song_title, song_artist, round_theme = utils.select_song(
+        round_theme, access_token
+    )
 
     game_rooms[game_code]["rounds"][round_index] = {
         "songUri": song_uri,
