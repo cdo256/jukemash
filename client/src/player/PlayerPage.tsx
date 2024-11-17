@@ -11,6 +11,33 @@ type PlayerState =
   | "OTHER_BUZZED"
   | "ROUND_END";
 
+function useRoundWaiting({
+  gameCode,
+  onStarted,
+  interval,
+}: {
+  gameCode: string;
+  onStarted: (roundIndex: number) => void;
+  interval: number;
+}) {
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["currentRound"],
+    queryFn: async () => {
+      console.log("current round");
+      return await axios.post("/api/current_round", {
+        gameCode,
+      });
+    },
+    refetchInterval: interval,
+  });
+
+  useEffect(() => {
+    if (!isPending && !isError && data.data.currentIndex >= 0) {
+      onStarted(data.data.currentIndex);
+    }
+  }, [data, isPending, isError]);
+}
+
 function UnconnectedState({
   onBack,
   onConnect,
@@ -70,22 +97,7 @@ function WaitingState({
   gameCode: string;
   onStarted: (roundIndex: number) => void;
 }) {
-  const { data, isPending, isError } = useQuery({
-    queryKey: ["currentRound"],
-    queryFn: async () => {
-      console.log("current round");
-      return await axios.post("/api/current_round", {
-        gameCode,
-      });
-    },
-    refetchInterval: 200,
-  });
-
-  useEffect(() => {
-    if (!isPending && !isError && data.data.currentIndex >= 0) {
-      onStarted(data.data.currentIndex);
-    }
-  }, [data, isPending, isError]);
+  useRoundWaiting({ gameCode, onStarted, interval: 200 });
 
   return <h2>Waiting for other players...</h2>;
 }
@@ -93,12 +105,19 @@ function WaitingState({
 function RoundStartState({
   name,
   gameCode,
-  roundIndex,
+  initialRoundIndex,
 }: {
   name: string;
   gameCode: string;
-  roundIndex: number;
+  initialRoundIndex: number;
 }) {
+  const [roundIndex, setRoundIndex] = useState(initialRoundIndex);
+  useRoundWaiting({
+    gameCode,
+    onStarted: (newRoundIndex) => setRoundIndex(newRoundIndex),
+    interval: 400,
+  });
+
   const buzzInMutation = useMutation({
     mutationFn: async () => {
       return await axios.post("/api/buzz_in", {
@@ -150,7 +169,7 @@ export function PlayerPage({ onBack }: { onBack: () => void }) {
       <RoundStartState
         name={name}
         gameCode={gameCode}
-        roundIndex={roundIndex}
+        initialRoundIndex={roundIndex}
       />
     );
   } else {
