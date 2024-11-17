@@ -127,10 +127,19 @@ def round_info():
     ), 200
 
 
-@app.route("/api/current_round")
+@app.route("/api/current_round", methods=["POST"])
 def get_current_round():
     """
     gets the current round number, takes the game code in json
+    {
+        "gameCode": "abcd"
+    }
+
+    Returns
+
+    {
+        "currentIndex": 2
+    }
     """
     data: dict = json.loads(request.get_data())
     game_code = data["game_code"]
@@ -187,7 +196,7 @@ def get_players():
         return jsonify({"message": "invalid gameCode"}), 400
     return jsonify(game_rooms[game_code]["players"])
 
-@app.route("/api/get_scoreboard")
+@app.route("/api/get_scoreboard", methods=["POST"])
 def get_scoreboard():
     data: dict = json.loads(request.get_data())
     if "gameCode" not in data:
@@ -224,7 +233,7 @@ def buzz_in():
     return jsonify({"message": "Buzzed in"}), 200
 
 
-@app.route("/api/next_buzz_in")
+@app.route("/api/next_buzz_in", methods=["POST"])
 def next_buzz_in():
     """Returns the first buzz in for the given game code and round index or empty
     expects:
