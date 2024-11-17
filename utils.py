@@ -11,7 +11,7 @@ def generate_game_code() -> str:
 
 def current_timestamp():
     """Get the current timestamp as a string."""
-    return datetime.utcnow().isoformat()
+    return int(datetime.utcnow().timestamp())
 
 def get_available_themes() -> list[str]:
     with open("data/playlists.json", "r") as f:
