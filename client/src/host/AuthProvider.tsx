@@ -74,14 +74,12 @@ async function getToken(): Promise<string | null> {
 }
 
 type AuthData = {
-  spotifyClient: AxiosInstance | null;
   token: string | null;
   isPending: boolean;
   loginAction: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthData>({
-  spotifyClient: null,
   token: null,
   isPending: false,
   loginAction: async () => {},
@@ -89,28 +87,28 @@ const AuthContext = createContext<AuthData>({
 
 export function AuthProvider({ children }: React.PropsWithChildren) {
   const [token, setToken] = useState<string | null>(null);
-  const [spotifyClient, setSpotifyClient] = useState<AxiosInstance | null>(
-    null,
-  );
+  //const [spotifyClient, setSpotifyClient] = useState<AxiosInstance | null>(
+  //  null,
+  //);
   const fetchToken = useMutation({
     mutationFn: () => getToken(),
     onSuccess: (accessToken) => {
       if (accessToken === null) {
-        setSpotifyClient(null);
+        //setSpotifyClient(null);
         setToken(null);
         return;
       }
 
-      const client = axios.create({
-        baseURL: "https://api.spotify.com/v1/",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      });
+      //const client = axios.create({
+      //  baseURL: "https://api.spotify.com/v1/",
+      //  headers: {
+      //    Authorization: `Bearer ${accessToken}`,
+      //    "Content-Type": "application/json",
+      //  },
+      //});
 
       setToken(accessToken);
-      setSpotifyClient(client);
+      //setSpotifyClient(client);
     },
   });
   const isPending = fetchToken.isPending;
@@ -147,9 +145,7 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
   };
 
   return (
-    <AuthContext.Provider
-      value={{ spotifyClient, token, isPending, loginAction }}
-    >
+    <AuthContext.Provider value={{ token, isPending, loginAction }}>
       {children}
     </AuthContext.Provider>
   );

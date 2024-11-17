@@ -1,6 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type GameState =
   | "UNCONNECTED"
@@ -17,21 +17,21 @@ function UnconnectedState({
   onError,
 }: {
   onBack: () => void;
-  onConnect: () => void;
+  onConnect: (name: string, gameCode: string) => void;
   onError: () => void;
 }) {
   const [name, setName] = useState<string>("");
-  const [code, setCode] = useState<string>("");
+  const [gameCode, setGameCode] = useState<string>("");
   const connectMutation = useMutation({
     mutationFn: async () => {
-      console.log(`connect ${name} ${code}`);
+      console.log(`connect ${name} ${gameCode}`);
       return await axios.post("/api/join_game", {
-        name: name,
-        gameCode: code,
+        name,
+        gameCode,
       });
     },
     onSuccess: () => {
-      onConnect();
+      onConnect(name, gameCode);
     },
     onError: () => {
       onError();
@@ -50,8 +50,8 @@ function UnconnectedState({
       <label>4-letter connect code:</label>
       <input
         type="text"
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
+        value={gameCode}
+        onChange={(e) => setGameCode(e.target.value)}
       />
       <button
         disabled={connectMutation.isPending}
@@ -63,27 +63,60 @@ function UnconnectedState({
   );
 }
 
+function WaitingState({
+  gameCode,
+  onStarted,
+}: {
+  gameCode: string;
+  onStarted: () => void;
+}) {
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["currentRound"],
+    queryFn: async () => {
+      console.log("current round");
+      return await axios.post("/api/current_round", {
+        gameCode,
+      });
+    },
+    refetchInterval: 200,
+  });
+
+  useEffect(() => {
+    if (!isPending && !isError && data.data.roundNumber > 0) {
+      onStarted();
+    }
+  }, [data]);
+
+  return <h2>Waiting for other players...</h2>;
+}
+
 export function PlayerPage({ onBack }: { onBack: () => void }) {
-  const [state, setState] = useState<GameState>("UNCONNECTED");
-  if (state == "UNCONNECTED") {
+  const [gameState, setGameState] = useState<GameState>("UNCONNECTED");
+  const [name, setName] = useState<string>("");
+  const [gameCode, setGameCode] = useState<string>("");
+
+  if (gameState == "UNCONNECTED") {
     return (
       <UnconnectedState
         onBack={onBack}
-        onConnect={() => setState("WAITING")}
-        onError={() => setState("UNCONNECTED")}
+        onConnect={(newName, newGameCode) => {
+          setName(newName);
+          setGameCode(newGameCode);
+          setGameState("WAITING");
+        }}
+        onError={() => setGameState("UNCONNECTED")}
       />
     );
-  } else if (state == "WAITING") {
+  } else if (gameState == "WAITING") {
     return (
-      <>
-        <h2>Waiting for other players...</h2>
-      </>
+      <WaitingState
+        gameCode={gameCode}
+        onStarted={() => setGameState("ROUND_START")}
+      />
     );
+  } else if (gameState == "ROUND_START") {
+    return <h2>Round Start</h2>;
   } else {
-    return (
-      <>
-        <h2>Unknown state</h2>
-      </>
-    );
+    return <h2>Unknown state</h2>;
   }
 }
