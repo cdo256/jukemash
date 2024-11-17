@@ -95,18 +95,23 @@ def round_info():
 
     song_uri, round_theme = utils.select_song(round_theme, access_token)
 
-    return jsonify({"roundIndex": round_index,
-                    "gameCode": game_code,
-                    "spotifySongUri": song_uri,
-                    "roundTheme": round_theme}), 200
+    return jsonify(
+        {
+            "roundIndex": round_index,
+            "gameCode": game_code,
+            "spotifySongUri": song_uri,
+            "roundTheme": round_theme,
+        }
+    ), 200
 
 
 # WebSocket Event: Chat or Game Logic
-@socketio.on('send_message')
+@socketio.on("send_message")
 def on_send_message(data):
-    game_code = data['game_code']
-    message = data['message']
-    emit('new_message', {'message': message}, to=game_code)
+    game_code = data["game_code"]
+    message = data["message"]
+    emit("new_message", {"message": message}, to=game_code)
+
 
 @app.route("/api/themes", methods=["GET"])
 def get_available_themes() -> Response:
@@ -185,6 +190,32 @@ def submit_response(data):
         )
     else:
         emit("error", {"message": "Invalid game code"})
+
+
+@socketio.on("join_game")
+def on_join_game(data):
+    username = data["username"]
+    game_code = data["game_code"]
+
+    if game_code in game_rooms:
+        join_room(game_code)
+        game_rooms[game_code]["players"].append(username)
+        emit("player_joined", {"username": username}, to=game_code)
+        emit("game_state", {"players": game_rooms[game_code]["players"]}, to=game_code)
+    else:
+        emit("error", {"message": "Invalid game code"})
+
+
+# WebSocket Event: Leave Game
+@socketio.on("leave_game")
+def on_leave_game(data):
+    username = data["username"]
+    game_code = data["game_code"]
+
+    if game_code in game_rooms:
+        leave_room(game_code)
+        game_rooms[game_code]["players"].remove(username)
+        emit("player_left", {"username": username}, to=game_code)
 
 
 if __name__ == "__main__":
