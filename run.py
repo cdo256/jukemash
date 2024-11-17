@@ -40,7 +40,7 @@ def create_game() -> Response:
         "gameMode": "guess"
     }
     """
-    data: dict = json.loads(request.get_json())
+    data: dict = json.loads(request.get_data())
     app.logger.info(data)
     if "gameMode" in data:
         game_mode = data["gameMode"]
