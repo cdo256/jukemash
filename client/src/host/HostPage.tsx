@@ -137,9 +137,7 @@ export function HostPage({ onBack }: { onBack: () => void }) {
       {isPending ? (
         <>
           <p>Loading...</p>
-          <button className="back" onClick={() => onBack()}>
-            Back
-          </button>
+          <button className="back" onClick={() => onBack()}></button>
         </>
       ) : spotifyClient && token ? (
         <HostView token={token} />
@@ -147,7 +145,6 @@ export function HostPage({ onBack }: { onBack: () => void }) {
         <>
           <button onClick={() => loginAction()}>Log in with Spotify</button>
           <button className="back" onClick={() => onBack()}>
-            Back
           </button>
         </>
       )}
