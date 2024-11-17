@@ -91,7 +91,7 @@ def round_info():
     if "roundTheme" in data.keys():
         round_theme = data["roundTheme"]
 
-    if game_code not in data.keys():
+    if game_code not in game_rooms:
         return jsonify({"message": "Game code not valid"}), 400
 
     song_uri, round_theme = utils.select_song(round_theme, access_token)

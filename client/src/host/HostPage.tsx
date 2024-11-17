@@ -51,8 +51,9 @@ function SpotifyPlayer({
   return <></>;
 }
 
-async function playSong(token: string, deviceId: string) {
-  const spotifySongUri = "spotify:track:0OTO8ZF2YqFQVw9hnZylTd";
+async function playSong(token: string, deviceId: string, gameCode: string) {
+  const resp = await axios.post("/api/round_info", { spotifyAccessToken: token, gameCode: gameCode, roundIndex: 0})
+  const spotifySongUri = resp.data.spotifySongUri;
 
   await axios.put(
     "https://api.spotify.com/v1/me/player/play",
@@ -66,7 +67,7 @@ async function playSong(token: string, deviceId: string) {
   );
 }
 
-function PlayButton({ token }: { token: string }) {
+function PlayButton({ token, gameCode }: { token: string, gameCode: string }) {
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const playSongMutation = useMutation({
     mutationFn: async () => {
@@ -75,7 +76,7 @@ function PlayButton({ token }: { token: string }) {
         return;
       }
 
-      return await playSong(token, deviceId);
+      return await playSong(token, deviceId, gameCode);
     },
   });
 
@@ -121,7 +122,7 @@ function HostView({ token }: { token: string }) {
     <>
       <p>Game code: {gameCode}</p>
       <p>Game mode: {gameMode}</p>
-      <PlayButton token={token} />
+      <PlayButton token={token} gameCode={gameCode}/>
     </>
   );
 }
