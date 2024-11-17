@@ -66,7 +66,7 @@ function RoundStartState({
   gameCode: string;
   token: string;
   isPlayerReady: boolean;
-  onPlaySong: (songUri: string) => void;
+  onPlaySong: (songUri: string, songTitle: string, songArtist: string) => void;
 }) {
   const roundInfoQuery = useQuery({
     queryKey: ["roundInfo"],
@@ -90,9 +90,10 @@ function RoundStartState({
         }
 
         const title = roundInfoQuery.data.data.songTitle;
+        const artist = roundInfoQuery.data.data.songArtist;
         const songUri = roundInfoQuery.data.data.spotifySongUri;
 
-        onPlaySong(songUri);
+        onPlaySong(songUri, title, artist);
       }}
     >
       Play Song
@@ -138,8 +139,70 @@ function SongPlayingState({
   );
 }
 
-function SongPausedState({ buzzedPlayerName }: { buzzedPlayerName: string }) {
-  return <h1>{buzzedPlayerName} buzzed in! What is your guess?</h1>;
+function SongPausedState({
+  gameCode,
+  buzzedPlayerName,
+  currentSong,
+  onResult,
+}: {
+  gameCode: string;
+  buzzedPlayerName: string;
+  currentSong: { songTitle: string; songArtist: string };
+  onResult: () => void;
+}) {
+  const [answerVisible, setAnswerVisible] = useState(false);
+  const resultMutation = useMutation({
+    mutationFn: async (result: "correct" | "incorrect") => {
+      return await axios.post("/api/result", {
+        gameCode,
+        name: buzzedPlayerName,
+        result,
+      });
+    },
+    onSuccess: () => {
+      onResult();
+    },
+  });
+
+  return (
+    <>
+      <h1>{buzzedPlayerName} buzzed in! What is your guess?</h1>
+      {answerVisible && (
+        <h1>
+          {currentSong.songTitle} by {currentSong.songArtist}
+        </h1>
+      )}
+      {!answerVisible && (
+        <button onClick={() => setAnswerVisible(true)}>Reveal Answer</button>
+      )}
+      <button onClick={() => resultMutation.mutate("correct")}>Correct</button>
+      <button onClick={() => resultMutation.mutate("incorrect")}>
+        Incorrect
+      </button>
+    </>
+  );
+}
+
+function GameOverState({ gameCode }: { gameCode: string }) {
+  const scoreboardQuery = useQuery({
+    queryKey: ["scoreboard"],
+    queryFn: async () => {
+      return await axios.post("/api/get_scoreboard", { gameCode });
+    },
+  });
+
+  if (scoreboardQuery.isPending) {
+    return <h2>Loading...</h2>;
+  }
+
+  if (scoreboardQuery.isError) {
+    return <h2>Error</h2>;
+  }
+
+  const playerName = scoreboardQuery.data.data.winner.name;
+  //const playerScore = scoreboardQuery.data.data.winner.score;
+
+  return <h1>{playerName} won the game!</h1>;
 }
 
 export function HostView({ token }: { token: string }) {
@@ -148,6 +211,22 @@ export function HostView({ token }: { token: string }) {
   const [roundIndex, setRoundIndex] = useState<number>(0);
   const [buzzedPlayerName, setBuzzedPlayerName] = useState<string>("");
   const { isPlayerReady, playSong, pauseSong } = useSpotifyPlayer(token);
+  const [currentSong, setCurrentSong] = useState({
+    songTitle: "",
+    songArtist: "",
+  });
+
+  const nextRound = () => {
+    //if (roundIndex >= 4) {
+    setRoundIndex((r) => r + 1);
+    // FIXME
+    if (roundIndex >= 0) {
+      setHostState("GAME_OVER");
+      return;
+    }
+
+    setHostState("ROUND_START");
+  };
 
   if (hostState === "PREINIT") {
     return (
@@ -172,8 +251,9 @@ export function HostView({ token }: { token: string }) {
         gameCode={gameCode}
         token={token}
         isPlayerReady={isPlayerReady}
-        onPlaySong={(songUri) => {
+        onPlaySong={(songUri, songTitle, songArtist) => {
           playSong(songUri);
+          setCurrentSong({ songTitle, songArtist });
           setHostState("SONG_PLAYING");
         }}
       />
@@ -191,6 +271,15 @@ export function HostView({ token }: { token: string }) {
       />
     );
   } else if (hostState === "SONG_PAUSED") {
-    return <SongPausedState buzzedPlayerName={buzzedPlayerName} />;
+    return (
+      <SongPausedState
+        gameCode={gameCode}
+        buzzedPlayerName={buzzedPlayerName}
+        currentSong={currentSong}
+        onResult={() => nextRound()}
+      />
+    );
+  } else if (hostState == "GAME_OVER") {
+    return <GameOverState gameCode={gameCode} />;
   }
 }
