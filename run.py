@@ -80,6 +80,8 @@ def round_info():
         "roundIndex": 0,
         "gameCode": "TBA2",
         "spotifySongUri": "spotify:track:4uLU6hMCjMI75M1A2tKUQC"
+        "songTitle": "test"
+        "artist": "Bob"
         "roundTheme": "80s"
     }
     """
@@ -109,7 +111,7 @@ def round_info():
     if game_code not in game_rooms:
         return jsonify({"message": "Game code not valid"}), 400
 
-    song_uri, round_theme = utils.select_song(round_theme, access_token)
+    song_uri, song_title, song_artist, round_theme = utils.select_song(round_theme, access_token)
 
     game_rooms[game_code]["rounds"][round_index] = {
         "songUri": song_uri,
@@ -122,6 +124,8 @@ def round_info():
             "roundIndex": round_index,
             "gameCode": game_code,
             "spotifySongUri": song_uri,
+            "songTitle": song_title,
+            "songArtist": song_artist,
             "roundTheme": round_theme,
         }
     ), 200

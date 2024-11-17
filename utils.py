@@ -25,6 +25,8 @@ def select_song(theme: str, access_token: str) -> tuple[str, str]:
     
     Returns:
         songURI - Spotify song URI
+        title - song title
+        artist - artist
         theme - Theme, if provided theme was not valid then this will be random
     """
     with open("data/playlists.json", "r") as f:
@@ -73,7 +75,7 @@ def select_song(theme: str, access_token: str) -> tuple[str, str]:
 
     print(track_name)
 
-    return track_uri, theme
+    return track_uri, track_name, track_artist, theme
 
 if __name__ == "__main__":
     s, t = select_song("", "BQCDyY5S8sMnhyK_O45s5yPRDEme-CKbSyZ9WEZHsQpA_teCw5I8fDFT_DW2nmlwo0thp6OHUbowXc7J4eTCfvKGf8gmGbAe8eQf-Cs5ZeCeKRs4FuQ")
