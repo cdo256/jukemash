@@ -69,7 +69,7 @@ function RoundStartState({
   onPlaySong: (songUri: string, songTitle: string, songArtist: string) => void;
 }) {
   const roundInfoQuery = useQuery({
-    queryKey: ["roundInfo", roundIndex],
+    queryKey: ["roundInfo"],
     queryFn: async () => {
       return await axios.post("/api/round_info", {
         roundIndex,
@@ -200,13 +200,9 @@ function GameOverState({ gameCode }: { gameCode: string }) {
   }
 
   const playerName = scoreboardQuery.data.data.winner.name;
-  const playerScore = scoreboardQuery.data.data.winner.score;
+  //const playerScore = scoreboardQuery.data.data.winner.score;
 
-  return (
-    <h1>
-      {playerName} won the game with {playerScore}!
-    </h1>
-  );
+  return <h1>{playerName} won the game!</h1>;
 }
 
 export function HostView({ token }: { token: string }) {
@@ -224,7 +220,7 @@ export function HostView({ token }: { token: string }) {
     //if (roundIndex >= 4) {
     setRoundIndex((r) => r + 1);
     // FIXME
-    if (roundIndex >= 3) {
+    if (roundIndex >= 0) {
       setHostState("GAME_OVER");
       return;
     }
