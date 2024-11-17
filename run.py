@@ -36,7 +36,8 @@ def create_game() -> Response:
 
     Returns:
     {
-        "gameCode": "A1B2"
+        "gameCode": "A1B2",
+        "gameMode": "guess"
     }
     """
     data: dict = json.loads(request.get_json())
@@ -80,7 +81,10 @@ def round_info():
         "roundTheme": "80s"
     }
     """
-    pass
+    data: dict = json.loads(request.get_json())
+
+    #if 
+    
 
 
 @app.route("/api/themes", methods=["GET"])
