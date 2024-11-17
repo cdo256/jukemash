@@ -263,7 +263,7 @@ def next_buzz_in():
     data: dict = json.loads(request.get_data())
     game_code = data["gameCode"]
     round_index = int(data["roundIndex"])
-    buzzs = data[game_code]["rounds"][round_index]["buzzIns"]
+    buzzs = game_rooms[game_code]["rounds"][round_index]["buzzIns"]
     if len(buzzs) > 0:
         return jsonify(buzzs.pop(0)), 200
 
