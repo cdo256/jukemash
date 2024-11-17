@@ -68,7 +68,7 @@ function WaitingState({
   onStarted,
 }: {
   gameCode: string;
-  onStarted: () => void;
+  onStarted: (roundIndex: number) => void;
 }) {
   const { data, isPending, isError } = useQuery({
     queryKey: ["currentRound"],
@@ -82,18 +82,46 @@ function WaitingState({
   });
 
   useEffect(() => {
-    if (!isPending && !isError && data.data.roundNumber >= 0) {
-      onStarted();
+    if (!isPending && !isError && data.data.currentIndex >= 0) {
+      onStarted(data.data.currentIndex);
     }
-  }, [data]);
+  }, [data, isPending, isError]);
 
   return <h2>Waiting for other players...</h2>;
+}
+
+function RoundStartState({
+  name,
+  gameCode,
+  roundIndex,
+}: {
+  name: string;
+  gameCode: string;
+  roundIndex: number;
+}) {
+  const buzzInMutation = useMutation({
+    mutationFn: async () => {
+      return await axios.post("/api/buzz_in", {
+        playerName: name,
+        gameCode,
+        roundIndex,
+      });
+    },
+  });
+
+  return (
+    <>
+      <h2>Round Start</h2>
+      <button onClick={() => buzzInMutation.mutate()}>Buzz!</button>
+    </>
+  );
 }
 
 export function PlayerPage({ onBack }: { onBack: () => void }) {
   const [playerState, setPlayerState] = useState<PlayerState>("UNCONNECTED");
   const [name, setName] = useState<string>("");
   const [gameCode, setGameCode] = useState<string>("");
+  const [roundIndex, setRoundIndex] = useState<number>(-1);
 
   if (playerState == "UNCONNECTED") {
     return (
@@ -111,11 +139,20 @@ export function PlayerPage({ onBack }: { onBack: () => void }) {
     return (
       <WaitingState
         gameCode={gameCode}
-        onStarted={() => setPlayerState("ROUND_START")}
+        onStarted={(newRoundIndex) => {
+          setRoundIndex(newRoundIndex);
+          setPlayerState("ROUND_START");
+        }}
       />
     );
   } else if (playerState == "ROUND_START") {
-    return <h2>Round Start</h2>;
+    return (
+      <RoundStartState
+        name={name}
+        gameCode={gameCode}
+        roundIndex={roundIndex}
+      />
+    );
   } else {
     return <h2>Unknown state</h2>;
   }
