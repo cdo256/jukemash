@@ -1,3 +1,4 @@
+import os
 import json
 
 from flask import Flask, Response, jsonify, request, send_from_directory
@@ -163,4 +164,8 @@ def submit_response(data):
 
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0")
+    if os.environ['USE_SSL']:
+        context = ('/ssl/fullchain.pem', '/ssl/privkey.pem')
+        socketio.run(app, host='0.0.0.0', ssl_context=context)
+    else:
+        socketio.run(app, host="0.0.0.0")
