@@ -115,6 +115,7 @@ def round_info():
 
     game_rooms[game_code]["rounds"][round_index] = {
         "songUri": song_uri,
+        "songTitle": song_title,
         "buzzIns": [],
         "roundTheme": round_theme,
     }
@@ -146,7 +147,7 @@ def get_current_round():
     }
     """
     data: dict = json.loads(request.get_data())
-    game_code = data["game_code"]
+    game_code = data["gameCode"]
     current_index = game_rooms[game_code]["currentRound"]
     return jsonify({"currentIndex": current_index}), 200
 
