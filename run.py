@@ -1,5 +1,6 @@
 import json
 import os
+import datetime
 
 from flask import Flask, Response, jsonify, request, send_from_directory
 from flask_socketio import SocketIO, emit, join_room, leave_room
@@ -58,6 +59,7 @@ def create_game() -> Response:
         "players": {},
         "gameMode": game_mode,
         "hostId": host_id,
+        "currentRound": -1,
         "rounds": {},  # List of responses with timestamps
     }
     return jsonify({"gameCode": code, "gameMode": game_mode}), 201
@@ -85,6 +87,9 @@ def round_info():
 
     round_index = data["roundIndex"]
     game_code = data["gameCode"]
+    if game_rooms[game_code]["currentRound"] < int(round_index):
+        game_rooms[game_code]["currentRound"] = int(round_index)
+    
     if round_index in game_rooms[game_code]["rounds"]:
         round = game_rooms[game_code]["rounds"][round_index]
         return jsonify({"spotifySongUri": round["songUri"],
@@ -117,6 +122,15 @@ def round_info():
         }
     ), 200
 
+@app.route("/api/current_round")
+def get_current_round():
+    """
+    gets the current round number, takes the game code in json
+    """
+    data: dict = json.loads(request.get_data())
+    game_code = data["game_code"]
+    current_index = game_rooms[game_code]["currentRound"]
+    return jsonify({"currentIndex": current_index}), 200
 
 @app.route("/api/themes", methods=["GET"])
 def get_available_themes() -> Response:
@@ -165,12 +179,61 @@ def get_players():
         return jsonify({"message": "invalid gameCode"}), 400
     return jsonify(game_rooms[game_code]["players"])
 
-@app.route("/api/buzz_in")
+@app.route("/api/buzz_in", methods=["POST"])
 def buzz_in():
     """User gives user name and game code along with any other data
     Records timestamp in global state
+    IN:
+    {
+        "playerName": "Alice",
+        "gameCode": "abcd"
+        "roundIndex": 1
+    }
     """
-    pass
+    data: dict = json.loads(request.get_data())
+
+    name = data["playerName"]
+    game_code = data["gameCode"]
+    round_index = data["roundIndex"]
+
+    game_rooms[game_code]["rounds"][round_index]["buzzIns"].append({"name": name, 
+                                                          "timestamp": utils.current_timestamp()})
+
+    return jsonify({"message": "Buzzed in"}), 200
+
+@app.route("/api/next_buzz_in")
+def next_buzz_in():
+    """Returns the first buzz in for the given game code and round index or empty
+    expects:
+    {
+        "gameCode": "abcd",
+        "roundIndex": "1"
+    }
+    """
+    data: dict = json.loads(request.get_data())
+    game_code = data["gameCode"]
+    round_index = data["roundIndex"]
+    next = data[game_code]["rounds"][round_index]["buzzIns"].pop(0)
+
+    return jsonify(next), 200
+
+@app.route("/api/result", methods=["POST"])
+def set_result():
+    """Set Winner/Loser
+        {
+            "gameCode": "abcd"
+            "name": "alice",
+            "result": "correct" || "incorrect"
+        }
+    """
+    data: dict = json.loads(request.get_data())
+    game_code = data["gameCode"]
+    name = data["name"]
+    result = data["result"]
+
+    if name not in game_rooms[game_code]["players"]:
+        return jsonify({"message": "" })
+
 
 if __name__ == "__main__":
     if os.environ.get("USE_SSL"):
