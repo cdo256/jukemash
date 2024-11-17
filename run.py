@@ -1,3 +1,4 @@
+import os
 import json
 
 from flask import Flask, Response, jsonify, request, send_from_directory
@@ -219,4 +220,8 @@ def on_leave_game(data):
 
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0")
+    if os.environ.get('USE_SSL'):
+        context = ('/ssl/fullchain.pem', '/ssl/privkey.pem')
+        socketio.run(app, host='0.0.0.0', ssl_context=context)
+    else:
+        socketio.run(app, host="0.0.0.0")
