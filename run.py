@@ -81,7 +81,7 @@ def round_info():
         "gameCode": "TBA2",
         "spotifySongUri": "spotify:track:4uLU6hMCjMI75M1A2tKUQC"
         "songTitle": "test"
-        "artist": "Bob"
+        "songArtist": "Bob"
         "roundTheme": "80s"
     }
     """
