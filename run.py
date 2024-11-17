@@ -175,7 +175,7 @@ def submit_response(data):
 
 
 if __name__ == "__main__":
-    if os.environ['USE_SSL']:
+    if os.environ.get('USE_SSL'):
         context = ('/ssl/fullchain.pem', '/ssl/privkey.pem')
         socketio.run(app, host='0.0.0.0', ssl_context=context)
     else:
