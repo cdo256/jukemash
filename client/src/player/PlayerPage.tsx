@@ -51,7 +51,7 @@ export function PlayerPage({ onBack }: { onBack: () => void }) {
 
   if (state == "UNCONNECTED") {
     return (<>
-     <button className='back' onClick={onBack}></button>
+      <button className='back' onClick={onBack}></button>
       <label>Nickname:</label>
       <input type='text' value={name} onChange={(e) => setName(e.target.value)} /> 
       <label>4-letter connect code:</label>
