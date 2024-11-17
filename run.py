@@ -293,6 +293,8 @@ def set_result():
     else:
         game_rooms[game_code]["players"][name] -= 500
 
+    return jsonify({"Message": "Adjusted Scores"}), 200
+
 
 if __name__ == "__main__":
     if os.environ.get("USE_SSL"):
