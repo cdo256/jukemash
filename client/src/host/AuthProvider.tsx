@@ -127,7 +127,8 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
     const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
     const redirectUri = getRedirectUri();
 
-    const scope = "streaming";
+    const scope =
+      "streaming user-read-email user-read-private user-modify-playback-state user-read-playback-state";
     const authUrl = new URL("https://accounts.spotify.com/authorize");
 
     window.localStorage.setItem("code_verifier", codeVerifier);

@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 from flask import Flask, Response, jsonify, request, send_from_directory
 from flask_socketio import SocketIO, emit, join_room, leave_room
@@ -82,7 +82,7 @@ def round_info():
         "roundTheme": "80s"
     }
     """
-    data: dict = json.loads(request.get_json())
+    data: dict = json.loads(request.get_data())
 
     round_index = data["roundIndex"]
     game_code = data["gameCode"]
@@ -220,8 +220,8 @@ def on_leave_game(data):
 
 
 if __name__ == "__main__":
-    if os.environ.get('USE_SSL'):
-        context = ('/ssl/fullchain.pem', '/ssl/privkey.pem')
-        socketio.run(app, host='0.0.0.0', ssl_context=context)
+    if os.environ.get("USE_SSL"):
+        context = ("/ssl/fullchain.pem", "/ssl/privkey.pem")
+        socketio.run(app, host="0.0.0.0", ssl_context=context)
     else:
         socketio.run(app, host="0.0.0.0")
