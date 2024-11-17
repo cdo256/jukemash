@@ -4,18 +4,22 @@ import { useState } from "react";
 
 type GameState =
   | "UNCONNECTED"
-  | "CONNECTING"
   | "WAITING"
-  //| "GAME_START"
   | "ROUND_START"
   | "SONG_PLAYING"
   | "PLAYER_BUZZED"
   | "OTHER_BUZZED"
   | "ROUND_END";
-//| "GAME_END";
 
-export function PlayerPage({ onBack }: { onBack: () => void }) {
-  const [state, setState] = useState<GameState>("UNCONNECTED");
+function UnconnectedState({
+  onBack,
+  onConnect,
+  onError,
+}: {
+  onBack: () => void;
+  onConnect: () => void;
+  onError: () => void;
+}) {
   const [name, setName] = useState<string>("");
   const [code, setCode] = useState<string>("");
   const connectMutation = useMutation({
@@ -27,36 +31,47 @@ export function PlayerPage({ onBack }: { onBack: () => void }) {
       });
     },
     onSuccess: () => {
-      setState("WAITING");
+      onConnect();
     },
     onError: () => {
-      setState("UNCONNECTED");
+      onError();
     },
   });
 
+  return (
+    <>
+      <button className="back" onClick={onBack}></button>
+      <label>Nickname:</label>
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <label>4-letter connect code:</label>
+      <input
+        type="text"
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+      />
+      <button
+        disabled={connectMutation.isPending}
+        onClick={() => connectMutation.mutate()}
+      >
+        Connect
+      </button>
+    </>
+  );
+}
+
+export function PlayerPage({ onBack }: { onBack: () => void }) {
+  const [state, setState] = useState<GameState>("UNCONNECTED");
   if (state == "UNCONNECTED") {
     return (
-      <>
-        <button className="back" onClick={onBack}></button>
-        <label>Nickname:</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <label>4-letter connect code:</label>
-        <input
-          type="text"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-        />
-        <button
-          disabled={connectMutation.isPending}
-          onClick={() => connectMutation.mutate()}
-        >
-          Connect
-        </button>
-      </>
+      <UnconnectedState
+        onBack={onBack}
+        onConnect={() => setState("WAITING")}
+        onError={() => setState("UNCONNECTED")}
+      />
     );
   } else if (state == "WAITING") {
     return (
