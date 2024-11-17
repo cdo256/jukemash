@@ -15,7 +15,7 @@
           buildInputs = with pkgs; [
             nodejs
             nodePackages.pnpm
-            python312Packages.poetry
+            python312Packages.poetry-core
           ];
         };
       }
