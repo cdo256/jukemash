@@ -1,39 +1,89 @@
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-type GameState = "UNCONNECTED" | "WAITING" | "GAME_START" | "ROUND_START" | "SONG_PLAYING" | "PLAYER_BUZZED" | "OTHER_BUZZED" | "ROUND_END" | "GAME_END";
+type GameState =
+  | "UNCONNECTED"
+  | "WAITING"
+  | "ROUND_START"
+  | "SONG_PLAYING"
+  | "PLAYER_BUZZED"
+  | "OTHER_BUZZED"
+  | "ROUND_END";
 
-function Connect(name: string, code: string) {
+function UnconnectedState({
+  onBack,
+  onConnect,
+  onError,
+}: {
+  onBack: () => void;
+  onConnect: () => void;
+  onError: () => void;
+}) {
+  const [name, setName] = useState<string>("");
+  const [code, setCode] = useState<string>("");
   const connectMutation = useMutation({
     mutationFn: async () => {
+      console.log(`connect ${name} ${code}`);
       return await axios.post("/api/join_game", {
         name: name,
-        gameCode: code
-      })
-    }
+        gameCode: code,
+      });
+    },
+    onSuccess: () => {
+      onConnect();
+    },
+    onError: () => {
+      onError();
+    },
   });
+
   return (
     <>
-      <h1>JukeMash!!!</h1>
-      <h2>Waiting for other players...</h2>
+      <button className="back" onClick={onBack}></button>
+      <label>Nickname:</label>
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <label>4-letter connect code:</label>
+      <input
+        type="text"
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+      />
+      <button
+        disabled={connectMutation.isPending}
+        onClick={() => connectMutation.mutate()}
+      >
+        Connect
+      </button>
     </>
-  )
+  );
 }
 
 export function PlayerPage({ onBack }: { onBack: () => void }) {
-  const [name, setName] = useState<string>('');
-  const [code, setCode] = useState<string>('');
-  let page = null;
-  //if (state == "UNCONNECTED") {
-    page = (<>
-     <button className='back' onClick={() => onBack()}></button>
-      <label>Nickname:</label>
-      <input type='text' value={name} onChange={(e) => setName(e.target.value)} /> 
-      <label>4-letter connect code:</label>
-      <input type='text' value={code} onChange={(e) => setCode(e.target.value)} /> 
-      <button onClick={() => Connect(name, code)}>Connect</button>
-    </>);
-  //} 
-  return page;
+  const [state, setState] = useState<GameState>("UNCONNECTED");
+  if (state == "UNCONNECTED") {
+    return (
+      <UnconnectedState
+        onBack={onBack}
+        onConnect={() => setState("WAITING")}
+        onError={() => setState("UNCONNECTED")}
+      />
+    );
+  } else if (state == "WAITING") {
+    return (
+      <>
+        <h2>Waiting for other players...</h2>
+      </>
+    );
+  } else {
+    return (
+      <>
+        <h2>Unknown state</h2>
+      </>
+    );
+  }
 }

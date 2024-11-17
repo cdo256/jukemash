@@ -28,6 +28,7 @@ COPY ./ssl/ /ssl/
 WORKDIR /app
 RUN pipx install poetry
 ENV PATH="/root/.local/bin:${PATH}" \
-  USE_SSL=y
+  USE_SSL=y \
+  POETRY_INSTALLER_NO_BINARY=":all:"
 RUN chmod +x start.sh
 ENTRYPOINT ["./start.sh"]

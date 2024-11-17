@@ -45,12 +45,12 @@ button.back {
     background-image: url('/back.svg');
     background-attachment: fixed;
     background-size: contain;
-  }
-  
-  button.back:hover {
+}
+
+button.back:hover {
     background-color: #ddd;
-  }
-  
-  button.back:active {
+}
+
+button.back:active {
     background-color: #bbb;
-  }
+}
