@@ -5,10 +5,16 @@ import { useEffect, useState } from "react";
 export function useSpotifyPlayer(token: string) {
   const [player, setPlayer] = useState<Spotify.Player | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+
   const playSongMutation = useMutation({
     mutationFn: async (spotifySongUri: string) => {
       if (deviceId === null) {
         console.error("No device ID :(");
+        return;
+      }
+
+      if (playing) {
         return;
       }
 
@@ -22,6 +28,36 @@ export function useSpotifyPlayer(token: string) {
           params: { device_id: deviceId },
         },
       );
+    },
+    onSuccess: () => {
+      setPlaying(true);
+    },
+  });
+
+  const pauseSongMutation = useMutation({
+    mutationFn: async () => {
+      if (deviceId === null) {
+        console.error("No device ID :(");
+        return;
+      }
+
+      if (!playing) {
+        return;
+      }
+
+      return await axios.put(
+        "https://api.spotify.com/v1/me/player/pause",
+        null,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: { device_id: deviceId },
+        },
+      );
+    },
+    onSuccess: () => {
+      setPlaying(false);
     },
   });
 
@@ -64,6 +100,7 @@ export function useSpotifyPlayer(token: string) {
   const isPlayerReady = deviceId !== null;
   const playSong = (spotifySongUri: string) =>
     playSongMutation.mutate(spotifySongUri);
+  const pauseSong = () => pauseSongMutation.mutate();
 
-  return { isPlayerReady, playSong };
+  return { isPlayerReady, playSong, pauseSong };
 }

@@ -100,11 +100,54 @@ function RoundStartState({
   );
 }
 
+function SongPlayingState({
+  gameCode,
+  roundIndex,
+  onBuzzIn,
+}: {
+  gameCode: string;
+  roundIndex: number;
+  onBuzzIn: (playerName: string) => void;
+}) {
+  const { data, isError, isPending } = useQuery({
+    queryKey: ["nextBuzzInQuery"],
+    queryFn: async () => {
+      return await axios.post("/api/next_buzz_in", {
+        gameCode,
+        roundIndex,
+      });
+    },
+    refetchInterval: 200,
+  });
+
+  useEffect(() => {
+    if (isError || isPending) {
+      return;
+    }
+
+    if (data.data.name !== undefined) {
+      onBuzzIn(data.data.name);
+    }
+  }, [data, isError, isPending]);
+
+  return (
+    <>
+      <p>Song is playing...</p>
+      <p>Buzz in to guess the song and artist!</p>
+    </>
+  );
+}
+
+function SongPausedState({ buzzedPlayerName }: { buzzedPlayerName: string }) {
+  return <h1>{buzzedPlayerName} buzzed in! What is your guess?</h1>;
+}
+
 export function HostView({ token }: { token: string }) {
   const [hostState, setHostState] = useState<HostState>("PREINIT");
   const [gameCode, setGameCode] = useState<string>("");
   const [roundIndex, setRoundIndex] = useState<number>(0);
-  const { isPlayerReady, playSong } = useSpotifyPlayer(token);
+  const [buzzedPlayerName, setBuzzedPlayerName] = useState<string>("");
+  const { isPlayerReady, playSong, pauseSong } = useSpotifyPlayer(token);
 
   if (hostState === "PREINIT") {
     return (
@@ -135,5 +178,19 @@ export function HostView({ token }: { token: string }) {
         }}
       />
     );
+  } else if (hostState === "SONG_PLAYING") {
+    return (
+      <SongPlayingState
+        gameCode={gameCode}
+        roundIndex={roundIndex}
+        onBuzzIn={(playerName) => {
+          setBuzzedPlayerName(playerName);
+          pauseSong();
+          setHostState("SONG_PAUSED");
+        }}
+      />
+    );
+  } else if (hostState === "SONG_PAUSED") {
+    return <SongPausedState buzzedPlayerName={buzzedPlayerName} />;
   }
 }
