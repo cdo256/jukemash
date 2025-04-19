@@ -16,7 +16,7 @@ RUN pnpm run build
 
 WORKDIR /
 
-FROM python:3.12.7
+FROM python:3.13.3
 RUN apt-get update && apt-get install --no-install-suggests --no-install-recommends --yes pipx
 
 COPY . /app 
