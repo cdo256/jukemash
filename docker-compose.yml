@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  jukemash_app:
+    image: jukemash
+    ports:
+      - "4433:80"
+    environment:
+      - USE_SSL=false
+    restart: unless-stopped
