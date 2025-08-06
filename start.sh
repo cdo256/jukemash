@@ -1,5 +1,6 @@
 #!/bin/bash
 poetry config --local installer.no-binary ":all:"
+poetry lock
 poetry install
 
 if [ "$USE_SSL" = "true" ]; then

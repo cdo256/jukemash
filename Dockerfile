@@ -26,7 +26,7 @@ COPY --from=build /client/dist /app/static
 COPY ./ssl/ /ssl/
 
 WORKDIR /app
-RUN pipx install poetry
+RUN pipx install poetry gunicorn
 ENV PATH="/root/.local/bin:${PATH}" \
   USE_SSL=y \
   POETRY_INSTALLER_NO_BINARY=":all:"
